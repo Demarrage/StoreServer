@@ -21,6 +21,15 @@ const tbproduto = mongoose.Schema({
 });
 // construção do modelo da tabela no mongodb
 const Produto = mongoose.model("produto", tbproduto);
+// construção da estrutura da tabela carrinho
+const tbcarrinho = mongoose.Schema({
+    idproduto:String,
+    nomeproduto:String,
+    preco:String,
+    foto:String
+});
+// criação da tabela carrinho
+const Carrinho = mongoose.model("carrinho", tbcarrinho);
 // criação do endpoints para o modelo produto.
 // Vamos iniciar com a rota para efetuar o cadastro dos produtos
 // Esta rota recebe o verbo POST(postar os dados do produto)
@@ -60,7 +69,7 @@ app.get("/produto/listar",cors(configCors),(req,res)=>{
 app.get("/produto/codproduto/:id",cors(configCors),(req,res)=>{
     Produto.findById(req.params.id,(erro,dados)=>{
         if(erro){
-            res.status(200).send({rs:`Ocorreu um erro ao tentar consultar produto ${erro}`})
+            res.status(400).send({rs:`Ocorreu um erro ao tentar consultar produto ${erro}`})
             return;
         }
         res.status(200).send({res:dados})
@@ -76,4 +85,30 @@ app.get("/produto/nomeproduto/:nome",cors(configCors),(req,res)=>{
     })
 });
 
+// ---------- Criação das rotas para o carrinho-------------
+app.post("/carrinho/adicionar", cors(configCors),(req,res)=>{
+    const dados = new Carrinho(req.body);
+    dados.save().then(()=>{
+        res.status(201).send({rs:"Item Adicionado"});
+    }).catch((error)=> console.error(`Ocorreu um erro ao tentar adiciionar ao carrinho - ${error}`));
+    
+});
+app.get("/carrinho/itens", cors(configCors),(req,res)=>{
+    Carrinho.find((error,dados)=>{
+        if(error){
+            res.status(400).send({rs:`Ocorreu um erro ao tentar listar os itens do carrinho - ${error}`});
+            return;
+        }
+        res.status(200).send({rs:dados});
+    });
+});
+app.delete("/carrinho/removeitem/:id",cors(configCors),(req,res)=>{
+    Carrinho.findByIdAndDelete(req.params.id,(error,dados)=>{
+        if(error){
+            res.status(400).send({rs:`Ocorreu um erro ao tentar deletar os itens do carrinho - ${error}`});
+            return;
+        }
+        res.status(204).send({rs:'item removido'});
+    });
+});
 app.listen("2500", ()=>console.log("Servidor online na porta 2500"));
