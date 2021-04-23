@@ -30,6 +30,15 @@ const tbcarrinho = mongoose.Schema({
 });
 // criação da tabela carrinho
 const Carrinho = mongoose.model("carrinho", tbcarrinho);
+// Construção da estrutura da tebela usuario
+const tbusuario = mongoose.Schema({
+    nomeusuario:String,
+    senha:String,
+    nomecompleto:String,
+    email:String
+});
+// criação do modelo de dado,ou seja a criação da tabela efetivamente.
+const Usuario = mongoose.model("usuario", tbusuario);
 // criação do endpoints para o modelo produto.
 // Vamos iniciar com a rota para efetuar o cadastro dos produtos
 // Esta rota recebe o verbo POST(postar os dados do produto)
@@ -111,4 +120,32 @@ app.delete("/carrinho/removeitem/:id",cors(configCors),(req,res)=>{
         res.status(204).send({rs:'item removido'});
     });
 });
+//Rotas para o usuario 
+app.post("/usuario/cadastro",cors(configCors),(req,res)=>{
+    const dados = new Usuario(req.body);
+    dados.save().then(()=>{
+        res.status(201).send({rs:`Cadastro efetuado com sucesso`});
+    }).catch((error)=>res.status(400).send({rs:`Erro ao tentar cadastrar ${error}`}))
+})
+app.post("/usuario/login",cors(configCors),(req,res)=>{
+    const us = req.body.nomeusuario;
+    const sh = req.body.senha;
+    Usuario.find({nomeusuario:us,senha:sh},
+        (erro,dados)=>{
+        if(erro){
+            res.status(400).send({rs:`Erro ao tentar executar a consulta ${erro}`})
+            return;
+        }
+        res.status(200).send({rs:dados});
+    });
+})
+app.put("/usuario/atualizar/:id",cors(configCors),(req,res)=>{
+    Usuario.findByIdAndUpdate(req.params.id,req.body,(erro,dados)=>{
+        if(erro){
+            res.status(400).send({rs:`Erros ao tentar atualizar ${erro}`});
+            return;
+        }
+        res.status(200).send({rs:`Dados atualizados`})
+    })
+})
 app.listen("2500", ()=>console.log("Servidor online na porta 2500"));
